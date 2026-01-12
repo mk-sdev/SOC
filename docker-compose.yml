@@ -1,0 +1,14 @@
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: soc_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - './logs:/var/log/nginx'
+  soc:
+    build: .
+    container_name: soc
+    volumes:
+      - './logs:/logs'
