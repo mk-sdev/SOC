@@ -7,9 +7,17 @@ services:
       - "8080:80"
     volumes:
       - './logs:/var/log/nginx'
+    networks:
+      - soc_net
   soc:
     build: .
     container_name: soc
     volumes:
       - './logs:/logs'
       - './soc_container:/app'
+    networks: 
+      - soc_net
+
+networks:
+  soc_net:
+    driver: bridge

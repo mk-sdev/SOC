@@ -1,5 +1,5 @@
 #!/bin/bash
-TARGET="http://localhost:8080"
+TARGET="http://nginx:80"
 
 echo "[*] Generating normal traffic..."
 for i in {1..20}; do
