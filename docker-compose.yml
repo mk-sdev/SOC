@@ -12,3 +12,4 @@ services:
     container_name: soc
     volumes:
       - './logs:/logs'
+      - './soc_container:/app'
