@@ -47,3 +47,25 @@ class Detector:
             if ip in self.blacklist:
                 self.raise_alert("BLACKLISTED_IP", ip)
 
+    def detect_traffic_spike(self):
+        now = pd.Timestamp.utcnow()
+
+        last_minute = self.buffer[
+            self.buffer["timestamp"] >= now - pd.Timedelta(minutes=1)
+        ]
+
+        prev_minute = self.buffer[
+            (self.buffer["timestamp"] >= now - pd.Timedelta(minutes=2)) &
+            (self.buffer["timestamp"] < now - pd.Timedelta(minutes=1))
+        ]
+
+        if len(prev_minute) > 0 and len(last_minute) > 10 * len(prev_minute):
+            self.raise_alert("TRAFFIC_SPIKE", "GLOBAL")
+
+    def detect_500_spike(self):
+        errors = self.buffer[self.buffer["status"] >= 500]
+
+        if len(errors) >= 5:
+            self.raise_alert("SERVER_ERROR_SPIKE", "GLOBAL")
+
+
