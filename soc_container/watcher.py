@@ -3,6 +3,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from parser import parse_line, save_to_csv
+from detection import Detector
 
 
 LOG_FILE = "/logs/collected.log"
@@ -11,6 +12,7 @@ class LogWatcher(FileSystemEventHandler):
     def __init__(self, filepath):
         self.filepath = filepath
         self._position = 0
+        self.detector = Detector()
 
         # set the starting position at the end of a file (not analyzing old traffic)
         if os.path.exists(self.filepath):
@@ -40,8 +42,9 @@ class LogWatcher(FileSystemEventHandler):
 
         if df is None:
             return
-        else:
-            save_to_csv(df)
+        
+        save_to_csv(df)
+        self.detector.run_all(df)
 
         # print("\n[PARSED LOG]")
         # print(df.to_string(index=False))
