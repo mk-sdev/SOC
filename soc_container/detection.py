@@ -25,11 +25,25 @@ class Detector:
 
     # DETECTIONS
 
+    def detect_bruteforce(self):
+        failed = self.buffer[
+            (self.buffer["endpoint"] == "/login") &
+            (self.buffer["status"] >= 400)
+        ]
+
+        grouped = failed.groupby("ip")
+
+        for ip, group in grouped:
+            if len(group) < 10:
+                continue
+
+            time_diff = group["timestamp"].max() - group["timestamp"].min()
+
+            if time_diff <= pd.Timedelta(minutes=2):
+                self.raise_alert("BRUTE_FORCE", ip)
+
     def detect_blacklisted_ip(self, df):
         for ip in df["ip"].unique():
             if ip in self.blacklist:
                 self.raise_alert("BLACKLISTED_IP", ip)
-
-
-
 
