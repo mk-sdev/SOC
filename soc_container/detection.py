@@ -68,4 +68,13 @@ class Detector:
         if len(errors) >= 5:
             self.raise_alert("SERVER_ERROR_SPIKE", "GLOBAL")
 
+    def detect_suspicious_ua(self, df):
+        suspicious = ["sqlmap", "nikto", "nmap", "curl"]
+
+        for _, row in df.iterrows():
+            ua = row["user_agent"]
+            for pattern in suspicious:
+                if pattern.lower() in ua.lower():
+                    self.raise_alert("SUSPICIOUS_USER_AGENT", row["ip"])
+
 
