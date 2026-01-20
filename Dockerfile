@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir pandas watchdog streamlit
 RUN chmod +x collector/collect.sh \
     && chmod +x attack_simulator.sh \
     && chmod +x alerting/block_ip.sh \
-    && chmod +x watcher.py
+    && chmod +x watcher.py \
+    && chmod +x start.sh
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["./start.sh"]
