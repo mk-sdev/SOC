@@ -77,4 +77,12 @@ class Detector:
                 if pattern.lower() in ua.lower():
                     self.raise_alert("SUSPICIOUS_USER_AGENT", row["ip"])
 
+    # ALERT
+    def raise_alert(self, alert_type, source):
+        timestamp = pd.Timestamp.utcnow()
 
+        message = f"{timestamp} | {alert_type} | {source}"
+        print(f"\n[!] {message}")
+
+        with open("/logs/alerts.log", "a") as f:
+            f.write(message + "\n")
