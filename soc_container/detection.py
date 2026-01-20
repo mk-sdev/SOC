@@ -22,6 +22,14 @@ class Detector:
         cutoff = pd.Timestamp.utcnow() - pd.Timedelta(minutes=10)
         self.buffer = self.buffer[self.buffer["timestamp"] >= cutoff]
 
+    def run_all(self, df: pd.DataFrame):
+        self.update_buffer(df)
+
+        self.detect_bruteforce()
+        self.detect_blacklisted_ip(df)
+        self.detect_traffic_spike()
+        self.detect_500_spike()
+        self.detect_suspicious_ua(df)
 
     # DETECTIONS
 

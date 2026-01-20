@@ -43,6 +43,7 @@ class LogWatcher(FileSystemEventHandler):
         if df is None:
             return
         
+        
         save_to_csv(df)
         self.detector.run_all(df)
 
