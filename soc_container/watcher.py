@@ -43,16 +43,9 @@ class LogWatcher(FileSystemEventHandler):
         if df is None:
             return
         
-        
+
         save_to_csv(df)
         self.detector.run_all(df)
-
-        # print("\n[PARSED LOG]")
-        # print(df.to_string(index=False))
-
-        #TODO:
-        # - detection
-        # - alerting
 
 
 if __name__ == "__main__":
