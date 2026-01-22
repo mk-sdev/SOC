@@ -1,5 +1,11 @@
 #!/bin/bash
-TARGET="http://nginx:80"
+if [ -f /.dockerenv ]; then
+    # if executed in a container
+    TARGET="http://nginx:80"
+else
+    # when executed on the host
+    TARGET="http://localhost:8080"
+fi
 
 echo "[*] Generating normal traffic..."
 for i in {1..20}; do
