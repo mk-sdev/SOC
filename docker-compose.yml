@@ -2,20 +2,27 @@
 services:
   nginx:
     image: nginx:latest
-    container_name: soc_nginx
+    container_name: nginx
     ports:
       - "8080:80"
     volumes:
       - './logs:/var/log/nginx'
     networks:
       - soc_net
-  soc:
-    build: .
-    container_name: soc
+  blue:
+    build: ./blue
+    container_name: blue
     volumes:
       - './logs:/logs'
-      - './soc_container:/app'
+      - './blue:/app'
     networks: 
+      - soc_net
+  red:
+    container_name: red
+    build: ./red
+    volumes:
+      - './red:/app'
+    networks:
       - soc_net
 
 networks:
