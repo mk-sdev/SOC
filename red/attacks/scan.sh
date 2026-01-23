@@ -1,7 +1,13 @@
 #!/bin/bash
 
-TARGET=${TARGET:-http://localhost:8080}
+if [ -f /.dockerenv ]; then
+    TARGET="nginx"
+else 
+    TARGET="localhost"
+fi
 
 echo "[*] Simulating nmap scan..."
-nmap -sS -p- $TARGET
+# enforcing http
+nmap -p 80 --script=http-title --source-port 53 -sS $TARGET
+
 echo "[*] Finished simulating nmap scan"
