@@ -1,12 +1,6 @@
 #!/bin/bash
 
-if [ -f /.dockerenv ]; then
-    # if executed in a container
-    TARGET="http://nginx:80"
-else
-    # when executed on the host
-    TARGET="http://localhost:8080"
-fi
+TARGET=${TARGET:-http://localhost:8080}
 
 # list of available endpoints
 ENDPOINTS=("/" "/login" "/index.php" "/about" "/contact" "/products")
