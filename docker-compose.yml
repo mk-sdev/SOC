@@ -9,6 +9,7 @@ services:
       - './logs:/var/log/nginx'
     networks:
       - soc_net
+      
   blue:
     build: ./blue
     container_name: blue
@@ -17,6 +18,9 @@ services:
       - './blue:/app'
     networks: 
       - soc_net
+    environment:
+      - TARGET=http://nginx:80
+
   red:
     container_name: red
     build: ./red
@@ -24,6 +28,9 @@ services:
       - './red:/app'
     networks:
       - soc_net
+    environment:
+      - TARGET=http://nginx:80
+
 
 networks:
   soc_net:
