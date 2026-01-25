@@ -1,13 +1,12 @@
-FROM python:3.12-slim
+FROM debian:bullseye-slim
 
 WORKDIR /app
 
 COPY . .
 
 RUN apt-get update \
-    && apt-get install -y curl \
+    && apt-get install -y curl nmap bash \
     && apt-get clean \
-    && apt-get install -y nmap \
     && rm -rf /var/lib/apt/lists/*
 
 RUN chmod +x attack_all.sh \
