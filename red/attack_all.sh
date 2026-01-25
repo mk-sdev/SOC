@@ -12,6 +12,7 @@ if [ $# -eq 0 ]; then
     run_attack "attacks/lfi.sh"
     run_attack "attacks/scan.sh"
     run_attack "attacks/sqli.sh"
+    run_attack "attacks/black_list.sh"
 else
     # iterating over arguments
     for arg in "$@"; do
@@ -27,6 +28,9 @@ else
                 ;;
             --sqli)
                 run_attack "attacks/sqli.sh"
+                ;;
+            --black)
+                run_attack "attacks/black_list.sh"
                 ;;
             *)
                 echo "[!] Unknown flag: $arg"
