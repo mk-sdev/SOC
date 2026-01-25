@@ -10,7 +10,7 @@ RUN apt-get update \
     && apt-get install -y nmap \
     && rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x attack_simulator.sh \
+RUN chmod +x attack_all.sh \
     && chmod +x traffic_simulator.sh \
     && chmod +x attacks/*.sh
 
