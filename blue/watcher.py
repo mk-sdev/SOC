@@ -10,6 +10,7 @@ LOG_FILE = "/logs/collected.log"
 
 class LogWatcher(FileSystemEventHandler):
     def __init__(self, filepath):
+        print("[*] Started new log detection in collected.log")
         self.filepath = filepath
         self._position = 0
         self.detector = Detector()
@@ -36,16 +37,19 @@ class LogWatcher(FileSystemEventHandler):
         if not line:
             return
 
-        print(f"[NEW LOG] {line}")
+        # print(f"[NEW LOG] {line}") #ok
 
-        df = parse_line(line)
+        parsed_log = parse_line(line)
 
-        if df is None:
+        print("parsed_log:", parsed_log) #ok
+
+        if parsed_log is None:
+            print(None)
             return
         
 
-        save_to_csv(df)
-        self.detector.run_all(df)
+        save_to_csv(parsed_log)
+        self.detector.run_all(parsed_log)
 
 
 if __name__ == "__main__":

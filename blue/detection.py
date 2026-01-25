@@ -1,11 +1,19 @@
-import pandas as pd
-
-
+import re
+from datetime import datetime, timedelta
+import urllib.parse
 class Detector:
 
     def __init__(self):
-        self.buffer = pd.DataFrame()
+        #todo: create classes for these:
+        self.brute_dict = {}  
         self.blacklist = self.load_blacklist()
+
+    def run_all(self, log):
+        self.detect_brute_force(log)
+        self.detect_blacklisted_ip(log)
+        self.detect_suspicious_ua(log)
+        self.detect_sqli(log)
+        self.detect_lfi(log)
 
     def load_blacklist(self):
         try:
@@ -13,83 +21,111 @@ class Detector:
                 return set(line.strip() for line in f if line.strip())
         except FileNotFoundError:
             return set()
+        
+    def update_blacklist(self, ip):
+        self.blacklist.append(ip)
+        with open("blacklist.txt", "a") as f:
+            f.write(ip)
 
-    def update_buffer(self, df: pd.DataFrame):
-        self.buffer = pd.concat([self.buffer, df], ignore_index=True)
-        self.buffer = self.buffer.sort_values("timestamp")
+    def detect_blacklisted_ip(self, log):
 
-        # keep only last 10 minutes
-        cutoff = pd.Timestamp.utcnow() - pd.Timedelta(minutes=10)
-        self.buffer = self.buffer[self.buffer["timestamp"] >= cutoff]
+        ip = log["ip"]
+        if ip in self.blacklist:
+            self.raise_alert("BLACKLISTED_IP",ip)
 
-    def run_all(self, df: pd.DataFrame):
-        self.update_buffer(df)
+    def detect_brute_force(self, log):
+        is_failed = log["endpoint"] == "/login" and log["status"] >= 400
+        ip = log["ip"]
 
-        self.detect_bruteforce()
-        self.detect_blacklisted_ip(df)
-        self.detect_traffic_spike()
-        self.detect_500_spike()
-        self.detect_suspicious_ua(df)
+        if is_failed:
+            timestamp = log["timestamp"]
+            if ip not in self.brute_dict:
+                self.brute_dict[ip] = []
+            self.brute_dict[ip].append(timestamp)
 
-    # DETECTIONS
+            # delete old logs which are older than 10 minutes
+            self.brute_dict[ip] = [t for t in self.brute_dict[ip] if t >= timestamp - timedelta(minutes=10)]
 
-    def detect_bruteforce(self):
-        failed = self.buffer[
-            (self.buffer["endpoint"] == "/login") &
-            (self.buffer["status"] >= 400)
+            # check for at least 10 failed attempts over last 2 minutes
+            if len(self.brute_dict[ip]) >= 10:
+                first_attempt_time = self.brute_dict[ip][0]
+                last_attempt_time = self.brute_dict[ip][-1]
+
+                # if the time between the 1st and 2nd try is shorter than 2 minutes
+                if last_attempt_time - first_attempt_time <= timedelta(minutes=2):
+                    self.raise_alert("BRUTE_FORCE", ip)
+
+    def detect_suspicious_ua(self, log): 
+        suspicious = ["sqlmap", "nikto", "nmap"]
+        ua = log["user_agent"] 
+        for pattern in suspicious: 
+            if pattern.lower() in ua.lower(): 
+                self.raise_alert("SUSPICIOUS_USER_AGENT", log["ip"])
+
+    def detect_sqli(self, log):
+        suspicious_patterns = [
+        r"(\%27|\')\s*OR\s*1=1",        # ' OR 1=1
+        r"(\%27|\')\s*AND\s*1=1",       # ' AND 1=1
+        r"(\%27|\')\s*--",               # ' --
+        r"(\%27|\')\s*UNION",            # ' UNION
+        r"SELECT\s+\*",                  # SELECT *
+        r"DROP\s+TABLE",                 # DROP TABLE
+        r"INSERT\s+INTO",                # INSERT INTO
+        r"\bEXEC\b",                     # EXEC (np. dla MSSQL)
+        r"(\%27|\')\s*FROM",             # ' FROM
+        r"(\%27|\')\s*LIKE",             # ' LIKE
+        r"(\%27|\')\s*GROUP\s+BY",       # ' GROUP BY
+        r"(\%27|\')\s*HAVING",           # ' HAVING
+        r"\s*SELECT\s+\*\s+FROM\s+.*\s+WHERE",  # SELECT * FROM ... WHERE
+        r"\s*UNION\s+SELECT\s+\*",       # UNION SELECT *
+        r"(\%27|\')\s*ORDER\s+BY",       # ' ORDER BY
+        r"(\%27|\')\s*JOIN",             # ' JOIN
+        r"(\%27|\')\s*DROP\s+COLUMNS",   # ' DROP COLUMNS
+        r"(\%27|\')\s*EXCEPT",           # ' EXCEPT
+        r"(\%27|\')\s*=\s*1",            # ' = 1 (częste w prostych atakach)
+        r"(\%27|\')\s*LIKE\s*'%'",       # ' LIKE '%'
+    ]
+
+        endpoint = log["endpoint"]
+    
+    # decode the URL
+        decoded_endpoint = urllib.parse.unquote(endpoint)
+    
+        print("Decoded endpoint:", decoded_endpoint)
+
+    # match the patterns
+        for pattern in suspicious_patterns:
+            if re.search(pattern, decoded_endpoint, re.IGNORECASE):
+                print(f"Detected SQL Injection pattern: {pattern}")
+                self.raise_alert("SQL_INJECTION", log["ip"])
+                break
+
+    def detect_lfi(self, log):
+        # list of suspected LFI injection attempt patterns
+        suspicious_patterns = [
+            r"\.\./",                        
+            r"etc/passwd",                   
+            r"etc/hosts",                    
+            r"(\.\./)+",                     
+            r"etc/shadow",                   
+            r"(\.\./){3,}",                  
+            r"(\.\./){2,}etc",               
+            r"(\.\./){2,}proc",              
+            r"\.\./etc",                     
+            r"(\.\./)+\.php",                
         ]
 
-        grouped = failed.groupby("ip")
+        endpoint = log["endpoint"]
+        decoded_endpoint = urllib.parse.unquote(endpoint)
 
-        for ip, group in grouped:
-            if len(group) < 10:
-                continue
+        for pattern in suspicious_patterns:
+            if re.search(pattern, decoded_endpoint, re.IGNORECASE):
+                self.raise_alert("LFI", log["ip"])
+                break
 
-            time_diff = group["timestamp"].max() - group["timestamp"].min()
-
-            if time_diff <= pd.Timedelta(minutes=2):
-                self.raise_alert("BRUTE_FORCE", ip)
-
-    def detect_blacklisted_ip(self, df):
-        for ip in df["ip"].unique():
-            if ip in self.blacklist:
-                self.raise_alert("BLACKLISTED_IP", ip)
-
-    def detect_traffic_spike(self):
-        now = pd.Timestamp.utcnow()
-
-        last_minute = self.buffer[
-            self.buffer["timestamp"] >= now - pd.Timedelta(minutes=1)
-        ]
-
-        prev_minute = self.buffer[
-            (self.buffer["timestamp"] >= now - pd.Timedelta(minutes=2)) &
-            (self.buffer["timestamp"] < now - pd.Timedelta(minutes=1))
-        ]
-
-        if len(prev_minute) > 0 and len(last_minute) > 10 * len(prev_minute):
-            self.raise_alert("TRAFFIC_SPIKE", "GLOBAL")
-
-    def detect_500_spike(self):
-        errors = self.buffer[self.buffer["status"] >= 500]
-
-        if len(errors) >= 5:
-            self.raise_alert("SERVER_ERROR_SPIKE", "GLOBAL")
-
-    def detect_suspicious_ua(self, df):
-        suspicious = ["sqlmap", "nikto", "nmap", "curl"]
-
-        for _, row in df.iterrows():
-            ua = row["user_agent"]
-            for pattern in suspicious:
-                if pattern.lower() in ua.lower():
-                    self.raise_alert("SUSPICIOUS_USER_AGENT", row["ip"])
-
-    # ALERT
-    def raise_alert(self, alert_type, source):
-        timestamp = pd.Timestamp.utcnow()
-
-        message = f"{timestamp} | {alert_type} | {source}"
+    def raise_alert(self, alert_type, ip):
+        timestamp = datetime.now()
+        message = f"{timestamp} | {alert_type} | {ip}"
         print(f"\n[!] {message}")
 
         with open("/logs/alerts.log", "a") as f:
