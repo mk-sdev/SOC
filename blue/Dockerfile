@@ -9,7 +9,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir pandas watchdog
+RUN pip install --no-cache-dir watchdog
 
 RUN chmod +x collector/collect.sh \
     && chmod +x alerting/block_ip.sh \
