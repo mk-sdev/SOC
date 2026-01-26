@@ -1,12 +1,13 @@
 import re
 from datetime import datetime, timedelta
 import urllib.parse
+from ip_access_policy import IpAccessPolicy
+
 class Detector:
 
     def __init__(self):
-        #todo: create classes for these:
         self.brute_dict = {}  
-        self.blacklist = self.load_blacklist()
+        self.ip_policy = IpAccessPolicy()
 
     def run_all(self, log):
         self.detect_brute_force(log)
@@ -15,22 +16,9 @@ class Detector:
         self.detect_sqli(log)
         self.detect_lfi(log)
 
-    def load_blacklist(self):
-        try:
-            with open("blacklist.txt") as f:
-                return set(line.strip() for line in f if line.strip())
-        except FileNotFoundError:
-            return set()
-        
-    def update_blacklist(self, ip):
-        self.blacklist.append(ip)
-        with open("blacklist.txt", "a") as f:
-            f.write(ip)
-
     def detect_blacklisted_ip(self, log):
-
         ip = log["ip"]
-        if ip in self.blacklist:
+        if self.ip_policy.is_blacklisted(ip):
             self.raise_alert("BLACKLISTED_IP",ip)
 
     def detect_brute_force(self, log):
