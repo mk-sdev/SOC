@@ -8,6 +8,7 @@ class Detector:
     def __init__(self):
         self.brute_dict = {}  
         self.ip_policy = IpAccessPolicy()
+        self.n = 0 # incremental alert log ID
 
     def run_all(self, log):
         self.detect_brute_force(log)
@@ -116,15 +117,15 @@ class Detector:
     def raise_alert(self, alert_type, ip):
         timestamp = datetime.now().isoformat()
         alert = {
+            "id": self.n,
             "timestamp": timestamp,
             "alert_type": alert_type,
             "ip": ip
         }
-
+        self.n+=1
         print(f"\n[!] {alert}")
 
         log_path = "/logs/alerts.json"
-
 
         try:
             with open(log_path, "r") as f:
