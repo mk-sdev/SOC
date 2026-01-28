@@ -1,5 +1,14 @@
 class IpAccessPolicy:
-    def __init__(self):
+    _instance = None  # zmienna przechowująca jedyną instancję
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._init_data()
+        return cls._instance
+
+    def _init_data(self):
+        # inicjalizacja stanu
         self.blacklist_path = "blacklist.txt"
         self.rate_limit_path = "rate_limit.txt"
 
