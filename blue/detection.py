@@ -1,4 +1,4 @@
-import re
+import re, json
 from datetime import datetime, timedelta
 import urllib.parse
 from ip_access_policy import IpAccessPolicy
@@ -34,8 +34,10 @@ class Detector:
             # delete old logs which are older than 10 minutes
             self.brute_dict[ip] = [t for t in self.brute_dict[ip] if t >= timestamp - timedelta(minutes=10)]
 
-            # check for at least 10 failed attempts over last 2 minutes
-            if len(self.brute_dict[ip]) >= 10:
+            allowed_attempts = 5 if self.ip_policy.is_rate_limited(ip) else 10
+
+            # check for at least 10 or 5 failed attempts over last 2 minutes
+            if len(self.brute_dict[ip]) == allowed_attempts:
                 first_attempt_time = self.brute_dict[ip][0]
                 last_attempt_time = self.brute_dict[ip][-1]
 
@@ -112,9 +114,26 @@ class Detector:
                 break
 
     def raise_alert(self, alert_type, ip):
-        timestamp = datetime.now()
-        message = f"{timestamp} | {alert_type} | {ip}"
-        print(f"\n[!] {message}")
+        timestamp = datetime.now().isoformat()
+        alert = {
+            "timestamp": timestamp,
+            "alert_type": alert_type,
+            "ip": ip
+        }
 
-        with open("/logs/alerts.log", "a") as f:
-            f.write(message + "\n")
+        print(f"\n[!] {alert}")
+
+        log_path = "/logs/alerts.json"
+
+
+        try:
+            with open(log_path, "r") as f:
+                alerts = json.load(f)
+        except json.JSONDecodeError:
+            alerts = []
+
+
+        alerts.append(alert)
+
+        with open(log_path, "w") as f:
+            json.dump(alerts, f, indent=4)
