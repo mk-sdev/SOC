@@ -1,7 +1,5 @@
 #!/bin/bash
 
-TARGET=${TARGET:-http://localhost:8080}
-
 # list of available endpoints
 ENDPOINTS=("/" "/login" "/index.php" "/about" "/contact" "/products")
 

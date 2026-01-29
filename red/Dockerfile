@@ -9,7 +9,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x attack_all.sh \
+RUN chmod +x run_all.sh \
     && chmod +x traffic_simulator.sh \
     && chmod +x attacks/*.sh
 
