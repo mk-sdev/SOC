@@ -4,13 +4,17 @@
 
 shopt -s nullglob  ## the loops should execute even if there are no files in the dir
 
-LOG_DIR="./logs"
+if [ -f /.dockerenv ]; then
+    LOG_DIR="/logs"
+else 
+    LOG_DIR="./logs"
+fi
 
 FILES=()
 
 if [ $# -eq 0 ]; then
     # clear all files if no arguments provided
-    FILES=("$LOG_DIR"/*.{log,csv})
+    FILES=("$LOG_DIR"/*.{log,csv,json})
 else
     # match fragments to file names
     for arg in "$@"; do
