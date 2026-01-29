@@ -2,9 +2,8 @@
 
 import sys
 from pathlib import Path
+from alert_inspector import inspect as inspect_
 
-import json
-from datetime import datetime
 
 # add parent directory so that Python could find ip_access_policy.py
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -71,79 +70,11 @@ def show(blocked, limited, all):
 @click.option("--since", help="Start time, e.g., 2026-01-01 or 2026-01-01T00:00:00")
 @click.option("--until", help="End time, e.g., 2026-01-01 or 2026-01-01T23:59:59")
 @click.option("--newest", is_flag=True, help="Sort from the newest")
+@click.option("--status", type=click.Choice(['all', 'closed', 'opened']), default='opened',help="FIlter alerts depending on their status")
 @click.argument("id", required=False, default=None)
-def inspect(ip, type, since, until, newest, id):
+def inspect(ip, type, since, until, newest, status, id):
     """Monitor alerts / events. You can provide a log ID to inspect a single alert."""
-    log_path = Path("/logs/alerts.json")
-    if not log_path.exists():
-        click.echo("No alerts found.")
-        return
-
-    try:
-        with open(log_path) as f:
-            alerts = json.load(f)
-    except Exception as e:
-        click.echo(f"Error reading alerts file: {e}")
-        return
-
-    # Convert to datetime objects for filtering by time range
-    try:
-        if since:
-            if "T" not in since:
-                since = f"{since}T00:00:00"
-            since = datetime.fromisoformat(since)
-        if until:
-            if "T" not in until:
-                until = f"{until}T23:59:59"
-            until = datetime.fromisoformat(until)
-    except ValueError as e:
-        click.echo(f"Invalid time format: {e}")
-        return
-
-    # Filtering
-    filtered = []
-    for a in alerts:
-        # Filter by IP
-        if ip and a.get("ip") != ip:
-            continue
-
-        # Filter by alert type
-        if type and a.get("alert_type") != type:
-            continue
-
-        # Filter by time
-        try:
-            log_time = datetime.fromisoformat(a.get("timestamp"))
-        except (ValueError, TypeError):
-            continue
-
-        if since and log_time < since:
-            continue
-        if until and log_time > until:
-            continue
-
-        filtered.append(a)
-
-    # If log_id is provided, filter for only that alert
-    if id is not None:
-        filtered = [a for a in filtered if str(a.get("id")) == id]
-        if not filtered:
-            click.echo(f"No alert found with ID: {id}")
-            return
-
-    if not filtered:
-        click.echo("No matching alerts.")
-        return
-
-    # Sorting
-    if newest:
-        filtered = sorted(filtered, key=lambda x: datetime.fromisoformat(x.get("timestamp")), reverse=True)
-    else:
-        filtered = sorted(filtered, key=lambda x: datetime.fromisoformat(x.get("timestamp")))
-
-    # Display results
-    for a in filtered:
-        click.echo(json.dumps(a, indent=2))
+    inspect_(ip, type, since, until, newest, status, id)
 
 
 if __name__ == "__main__":
