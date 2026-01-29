@@ -3,7 +3,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from parser import parse_line, save_to_csv
-from detection import Detector
+from detector import Detector
 
 
 LOG_FILE = "/logs/collected.log"

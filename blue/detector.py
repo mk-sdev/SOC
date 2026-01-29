@@ -8,7 +8,7 @@ class Detector:
     def __init__(self):
         self.brute_dict = {}  
         self.ip_policy = IpAccessPolicy()
-        self.n = 0 # incremental alert log ID
+        self.n = self.initialize_n() # incremental alert log ID
 
     def run_all(self, log):
         self.detect_brute_force(log)
@@ -16,6 +16,16 @@ class Detector:
         self.detect_suspicious_ua(log)
         self.detect_sqli(log)
         self.detect_lfi(log)
+
+    def initialize_n(self):
+        log_path = "/logs/alerts.json"
+
+        try:
+            with open(log_path, "r") as f:
+                alerts = json.load(f)
+                return alerts[-1]["id"] + 1
+        except json.JSONDecodeError:
+            return 0
 
     def detect_blacklisted_ip(self, log):
         ip = log["ip"]
@@ -137,4 +147,4 @@ class Detector:
         alerts.append(alert)
 
         with open(log_path, "w") as f:
-            json.dump(alerts, f, indent=4)
+            json.dump(alerts, f)

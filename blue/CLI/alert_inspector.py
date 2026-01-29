@@ -91,7 +91,7 @@ def update_log_in_file(updated_log):
 
     # save (rewrites only one log)
     with open(log_path, "w") as f:
-        json.dump(alerts, f, indent=2)
+        json.dump(alerts, f)
 
 
 
