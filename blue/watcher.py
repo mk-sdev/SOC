@@ -2,8 +2,8 @@ import os
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from parser import parse_line, save_to_csv
-from detector import Detector
+from log_tools.parser import parse_line, save_to_csv
+from log_tools.detector import Detector
 
 
 LOG_FILE = "/logs/collected.log"
@@ -37,16 +37,10 @@ class LogWatcher(FileSystemEventHandler):
         if not line:
             return
 
-        # print(f"[NEW LOG] {line}") #ok
-
         parsed_log = parse_line(line)
 
-        print("parsed_log:", parsed_log) #ok
-
         if parsed_log is None:
-            print(None)
             return
-        
 
         save_to_csv(parsed_log)
         self.detector.run_all(parsed_log)

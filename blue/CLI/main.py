@@ -8,7 +8,7 @@ from alert_inspector import inspect as inspect_
 # add parent directory so that Python could find ip_access_policy.py
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from ip_access_policy import IpAccessPolicy
+from access_control.ip_access_policy import IpAccessPolicy
 
 import click
 

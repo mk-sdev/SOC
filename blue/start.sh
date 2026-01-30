@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
 echo "START"
 
-./collector/collect.sh &
-COLLECT_PID=$!
+./log_tools/collect.sh & python3 ./watcher.py &
 
-exec python watcher.py
+# wait for every background process
+wait

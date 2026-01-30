@@ -1,7 +1,7 @@
 import re, json
 from datetime import datetime, timedelta
 import urllib.parse
-from ip_access_policy import IpAccessPolicy
+from access_control.ip_access_policy import IpAccessPolicy
 
 class Detector:
 
@@ -92,8 +92,6 @@ class Detector:
     # decode the URL
         decoded_endpoint = urllib.parse.unquote(endpoint)
     
-        print("Decoded endpoint:", decoded_endpoint)
-
     # match the patterns
         for pattern in suspicious_patterns:
             if re.search(pattern, decoded_endpoint, re.IGNORECASE):

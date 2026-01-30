@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# Ścieżki w kontenerze soc
 LOG_SOURCE="/logs/access.log"
 OUTPUT="/logs/collected.log"
 
-# Tworzymy plik jeśli nie istnieje
 touch $OUTPUT
 
 echo "[*] Starting log collection from $LOG_SOURCE..."

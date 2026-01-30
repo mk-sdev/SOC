@@ -44,11 +44,9 @@ def save_to_csv(parsed_log):
     file_exists = os.path.exists(OUTPUT_FILE)
 
     with open(OUTPUT_FILE, mode='a', newline='') as file:
-        print("opening file")
         writer = csv.DictWriter(file, fieldnames=["ip", "timestamp", "status", "endpoint", "user_agent"])
 
         if not file_exists:
-            print("file not exist")
             writer.writeheader()
             
         writer.writerow(parsed_log)

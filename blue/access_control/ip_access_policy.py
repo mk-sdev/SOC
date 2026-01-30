@@ -1,5 +1,5 @@
 class IpAccessPolicy:
-    _instance = None  # zmienna przechowująca jedyną instancję
+    _instance = None  # variable containing the only one instance
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -8,9 +8,8 @@ class IpAccessPolicy:
         return cls._instance
 
     def _init_data(self):
-        # inicjalizacja stanu
-        self.blacklist_path = "blacklist.txt"
-        self.rate_limit_path = "rate_limit.txt"
+        self.blacklist_path = "/app/access_control/blacklist.txt"
+        self.rate_limit_path = "/app/access_control/rate_limit.txt"
 
         self._blacklisted_ips = self._load_file(self.blacklist_path)
         self._rate_limited_ips = self._load_file(self.rate_limit_path)
