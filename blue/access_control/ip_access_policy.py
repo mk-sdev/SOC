@@ -1,20 +1,27 @@
+import threading
+import time
+
 class IpAccessPolicy:
-    _instance = None  # variable containing the only one instance
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._init_data()
-        return cls._instance
-
-    def _init_data(self):
+    def __init__(self):
         self.blacklist_path = "/app/access_control/blacklist.txt"
         self.rate_limit_path = "/app/access_control/rate_limit.txt"
 
         self._blacklisted_ips = self._load_file(self.blacklist_path)
         self._rate_limited_ips = self._load_file(self.rate_limit_path)
 
-    # ---------- CHECKS ----------
+        # start a thread which refreshes the lists of restricted ip addresses every 60 seconds
+        self._reload_thread = threading.Thread(target=self._reload_ACL_periodically)
+        self._reload_thread.daemon = True  # the thread stops when the app stops
+        self._reload_thread.start()
+
+    def _reload_ACL_periodically(self):
+        while True:
+            time.sleep(60)
+            self._blacklisted_ips = self._load_file(self.blacklist_path)
+            self._rate_limited_ips = self._load_file(self.rate_limit_path)
+
+    #  CHECKS 
 
     def is_blacklisted(self, ip):
         return ip in self._blacklisted_ips
@@ -22,7 +29,7 @@ class IpAccessPolicy:
     def is_rate_limited(self, ip):
         return ip in self._rate_limited_ips
 
-    # ---------- LOAD ----------
+    #  LOAD
 
     def _load_file(self, path):
         try:
@@ -31,7 +38,7 @@ class IpAccessPolicy:
         except FileNotFoundError:
             return set()
 
-    # ---------- BLACKLIST ----------
+    #  BLACKLIST
 
     def block_address(self, ip):
         if ip not in self._blacklisted_ips:
@@ -44,7 +51,7 @@ class IpAccessPolicy:
             self._blacklisted_ips.remove(ip)
             self._rewrite_file(self.blacklist_path, self._blacklisted_ips)
 
-    # ---------- RATE LIMIT ----------
+    #  RATE LIMIT 
 
     def apply_rate_limit(self, ip):
         if ip not in self._rate_limited_ips:
@@ -57,7 +64,7 @@ class IpAccessPolicy:
             self._rate_limited_ips.remove(ip)
             self._rewrite_file(self.rate_limit_path, self._rate_limited_ips)
 
-    # ---------- SAVE ----------
+    #  SAVE
 
     def _rewrite_file(self, path, data_set):
         with open(path, "w") as f:
