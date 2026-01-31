@@ -14,9 +14,8 @@ RUN pip install --no-cache-dir watchdog click
 RUN chmod +x log_tools/collect.sh \
     && chmod +x watcher.py \
     && chmod +x CLI/main.py \
-    && chmod +x start.sh
-
-RUN echo "alias soclog='python3 /app/CLI/main.py'" >> /root/.bashrc
-RUN echo "alias clean='/logs/clear_logs.sh'" >> /root/.bashrc
+    && chmod +x start.sh \
+    && echo "alias soc='python3 /app/CLI/main.py'" >> /root/.bashrc \
+    && echo "alias clean='/logs/clear_logs.sh'" >> /root/.bashrc
 
 CMD ["./start.sh"]
