@@ -16,7 +16,7 @@ ip_policy = IpAccessPolicy()  # singleton
 
 @click.group()
 def soclog():
-    """SOC log management CLI"""
+    """SOC management CLI"""
     pass
 
 # ---------- BLACKLIST ----------
