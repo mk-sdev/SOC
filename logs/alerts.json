@@ -1,0 +1,43 @@
+[
+  {
+    "id": 0,
+    "timestamp": "2026-01-31T11:51:34.195259",
+    "alert_type": "BRUTE_FORCE",
+    "ip": "121.44.80.68",
+    "closed": true
+  },
+  {
+    "id": 1,
+    "timestamp": "2026-01-31T11:51:34.262184",
+    "alert_type": "LFI",
+    "ip": "237.113.212.63"
+  },
+  {
+    "id": 2,
+    "timestamp": "2026-01-31T11:51:34.909244",
+    "alert_type": "SUSPICIOUS_USER_AGENT",
+    "ip": "172.27.0.2",
+    "closed": true,
+    "false_positive": true,
+    "comment": "One of the workers was scanning the network looking for open ports"
+  },
+  {
+    "id": 3,
+    "timestamp": "2026-01-31T11:51:34.973242",
+    "alert_type": "BLACKLISTED_IP",
+    "ip": "1.2.3.4",
+    "closed": true
+  },
+  {
+    "id": 4,
+    "timestamp": "2026-01-31T11:52:24.431716",
+    "alert_type": "LFI",
+    "ip": "147.45.206.179"
+  },
+  {
+    "id": 5,
+    "timestamp": "2026-01-31T11:52:24.511502",
+    "alert_type": "BRUTE_FORCE",
+    "ip": "245.73.89.170"
+  }
+]
