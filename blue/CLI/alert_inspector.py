@@ -1,7 +1,7 @@
 import click, json
 from datetime import datetime
 from pathlib import Path
-import alert_viewer
+from alert_viewer import alert_viewer
 
 def inspect(ip, type, since, until, newest, status, id):
     '''
