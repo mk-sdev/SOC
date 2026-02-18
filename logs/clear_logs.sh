@@ -1,6 +1,25 @@
 #!/bin/bash
 
-# execute this only from the root directory on the host
+'''
+Log Cleanup Utility
+
+Truncates log and analysis files in the shared logs directory without
+deleting them (preserves file descriptors).
+
+Usage:
+  ./logs/clear_logs.sh   # on host (from project root)
+  clean                  # alias inside blue container
+
+Behavior:
+  clean            - clears all *.log, *.csv, *.json files
+  clean <pattern>  - clears files containing <pattern>
+                     e.g., clean col == clean collected.log
+
+The script auto-detects environment:
+  - /logs   (inside Docker)
+  - ./logs  (host execution)
+'''
+
 
 shopt -s nullglob  ## the loops should execute even if there are no files in the dir
 
@@ -18,7 +37,7 @@ if [ $# -eq 0 ]; then
 else
     # match fragments to file names
     for arg in "$@"; do
-        matches=("$LOG_DIR/"*"$arg"*".log" "$LOG_DIR/"*"$arg"*".csv")
+        matches=("$LOG_DIR/"*"$arg"*".log" "$LOG_DIR/"*"$arg"*".csv" "$LOG_DIR/"*"$arg"*".json")
         FILES+=("${matches[@]}")
     done
 fi
